@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id         Int          @id @default(autoincrement())
+  name       String       @unique
+  permission Permission[]
+}
+
+model User {
+  id         Int          @id @default(autoincrement())
+  name       String
+  username   String       @unique
+  password   String
+  permission Permission[]
+  finance    Finance[]
+}
+
+model Permission {
+  id     Int  @id @default(autoincrement())
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+  role   Role @relation(fields: [roleId], references: [id])
+  roleId Int
+}
+
+model PaymentMethod {
+  id      Int       @id @default(autoincrement())
+  name    String    @unique
+  finance Finance[]
+}
+
+model Finance {
+  id                Int           @id @default(autoincrement())
+  value             Float
+  created_at        DateTime      @default(now())
+  payment_date      DateTime
+  user              User          @relation(fields: [userId], references: [id])
+  userId            Int
+  received          Boolean
+  my_company        Company       @relation(name: "my_company", fields: [my_company_id], references: [id])
+  my_company_id     Int
+  other_company     Company       @relation(name: "other_company", fields: [other_company_id], references: [id])
+  other_company_id  Int
+  payment_method    PaymentMethod @relation(fields: [payment_method_id], references: [id])
+  payment_method_id Int
+}
+
+model Company {
+  id            Int       @id @default(autoincrement())
+  name          String    @unique
+  cnpj          String?   @unique
+  own           Boolean
+  my_company    Finance[] @relation("my_company")
+  other_company Finance[] @relation("other_company")
+}
